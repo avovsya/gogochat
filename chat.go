@@ -57,10 +57,10 @@ func handleConnection(c net.Conn, msgchan chan<- string, addchan chan<- Client, 
         rmchan <- client
     }()
     io.WriteString(c, fmt.Sprintf("Welcome, %s!\n\n", client.nickname))
-    msgchan <- fmt.Sprintf("New user %s has hoined the chat room. \n", client.nickname)
+    msgchan <- fmt.Sprintf("New user %s has joined the chat room. \n", client.nickname)
 
     go client.ReadLinesInto(msgchan)
-    go client.WriteLinesFrom(client.ch)
+    client.WriteLinesFrom(client.ch)
 }
 
 func promptNick(c net.Conn, bufc *bufio.Reader) string {
@@ -84,7 +84,6 @@ func (c Client) ReadLinesInto(ch chan<- string) {
 func (c Client) WriteLinesFrom(ch <-chan string) {
     for msg := range ch {
         _, err := io.WriteString(c.conn, msg)
-        fmt.Println(msg)
         if err != nil {
             return
         }

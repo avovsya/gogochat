@@ -14,7 +14,6 @@ func main() {
     conn, err := net.Dial("tcp", ":6000")
 
     serverchan := make(chan string)
-    stdinchan := make(chan string)
 
     if err != nil {
         log.Fatal(err)
@@ -23,8 +22,7 @@ func main() {
     fmt.Println("New connection established\n")
 
     go WriteToServer(conn, serverchan)
-    go WriteToStdin(stdinchan)
-    go ReadFromServer(conn, stdinchan, serverchan)
+    go ReadFromServer(conn, serverchan)
 
     reader := bufio.NewReader(os.Stdin)
 
@@ -36,12 +34,6 @@ func main() {
         }
 
         serverchan <- line
-    }
-}
-
-func WriteToStdin(stdinchan <-chan string) {
-    for msg := range stdinchan {
-        fmt.Println(msg)
     }
 }
 
@@ -62,7 +54,7 @@ func promptNick() string {
     return line
 }
 
-func ReadFromServer(c net.Conn, stdinchan chan<- string, serverchan chan<- string) {
+func ReadFromServer(c net.Conn, serverchan chan<- string) {
     bufc := bufio.NewReader(c)
     for {
         line, err := bufc.ReadString('\n')
@@ -70,10 +62,10 @@ func ReadFromServer(c net.Conn, stdinchan chan<- string, serverchan chan<- strin
             break
         }
         if strings.EqualFold("What is your nick?\n", line) {
-            stdinchan <- line
+            fmt.Println(line)
             serverchan <- promptNick()
         } else {
-            stdinchan <- line
+            fmt.Println(line)
         }
     }
 }
